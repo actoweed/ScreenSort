@@ -12,10 +12,9 @@ Automatically sort your screenshots into categorised folders using [CLIP](https:
 
 - **Tray app** — lives in the system tray, auto-sorts new screenshots as they arrive
 - **Zero-shot CLIP classification** — no training data needed; just edit text prompts in `config.yaml`
-- **OCR full-text search** — extracts text from screenshots, indexes in SQLite, search via tray menu
 - **Duplicate detection** — perceptual hashing skips near-identical images silently
 - **Configurable categories** — add, rename, or remove categories by editing YAML only
-- **No GPU required** — runs on CPU; first launch downloads ~600 MB of model weights
+- **No GPU required** — runs on CPU; first launch downloads ~400 MB of model weights
 
 ---
 
@@ -35,7 +34,6 @@ After installation, the app runs in the background:
 
 - **Tray icon** (bottom-right corner) → right-click for the menu
 - **Start/Stop watching** — toggle auto-sorting
-- **Search by text** — search OCR-indexed text across all sorted screenshots
 - **Change folder** — pick a different folder to watch
 - **Open folder** — open the sorted output folder
 
@@ -75,9 +73,8 @@ clip_model: "ViT-B-32"
 ## How it works
 
 1. **[CLIP](https://github.com/mlfoundations/open_clip)** embeds each image and your text prompts into the same vector space — the category whose prompt is closest to the image wins.
-2. **[EasyOCR](https://github.com/JaidedAI/EasyOCR)** reads visible text from each screenshot and stores it in a local SQLite FTS5 index for full-text search.
-3. **[imagehash](https://github.com/JohannesBuchner/imagehash)** computes a perceptual hash before moving each file — near-duplicates are skipped silently.
-4. **[watchdog](https://github.com/gorakhargosh/watchdog)** listens for filesystem events — no polling, zero CPU when idle.
+2. **[imagehash](https://github.com/JohannesBuchner/imagehash)** computes a perceptual hash before moving each file — near-duplicates are skipped silently.
+3. **[watchdog](https://github.com/gorakhargosh/watchdog)** listens for filesystem events — no polling, zero CPU when idle.
 
 ---
 
@@ -108,11 +105,10 @@ screenshot-sorter/
 │   ├── tray_app.py               # System tray UI (Win32/pystray)
 │   ├── first_run.py              # First-launch bootstrap + progress window
 │   ├── classifier.py             # CLIP inference
-│   ├── ocr.py                    # EasyOCR + SQLite FTS5 index
 │   ├── watcher.py                # watchdog folder watcher
 │   ├── deduplicator.py           # Perceptual hash duplicate detection
 │   ├── mover.py                  # File move operations
-│   └── cli.py                    # CLI interface (sort, search commands)
+│   └── cli.py                    # CLI interface
 ├── installer/
 │   ├── build_installer.py        # Build script — run this to produce .exe
 │   ├── installer.nsi             # NSIS installer script
