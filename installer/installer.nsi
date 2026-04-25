@@ -75,7 +75,7 @@ Section "Install"
 
     ; Install lightweight deps now (heavy ML libs install on first run)
     DetailPrint "Installing base dependencies..."
-    nsExec::ExecToLog '"$INSTDIR\runtime\python.exe" -m pip install --quiet --no-warn-script-location watchdog>=4.0.0 Pillow>=10.0.0 imagehash>=4.3.1 click>=8.1.0 PyYAML>=6.0 pystray>=0.19.0'
+    nsExec::ExecToLog '"$INSTDIR\runtime\python.exe" -m pip install --quiet --no-warn-script-location watchdog>=4.0.0 Pillow>=10.0.0 imagehash>=4.3.1 PyYAML>=6.0 pystray>=0.19.0'
 
     ; Uninstaller
     WriteUninstaller "$INSTDIR\uninstall.exe"

@@ -15,7 +15,6 @@ from pathlib import Path
 _HEAVY_DEPS = [
     "torch>=2.0.0",
     "open-clip-torch>=2.24.0",
-    "easyocr>=1.7.0",
     "tqdm>=4.65.0",
 ]
 
@@ -26,9 +25,8 @@ def _deps_installed() -> bool:
     if not _MARKER.exists():
         return False
     try:
-        import torch       # noqa: F401
-        import open_clip   # noqa: F401
-        import easyocr     # noqa: F401
+        import torch      # noqa: F401
+        import open_clip  # noqa: F401
         return True
     except ImportError:
         return False

@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import ctypes
-import ctypes.wintypes as wt
 import json
 import logging
 import os
-import subprocess
 import sys
 import threading
 import time
@@ -47,59 +45,6 @@ def _msgbox(title: str, text: str, style: int = MB_OK | MB_ICONINFO) -> int:
     done.wait()
     return result[0]
 
-
-def _input_dialog(title: str, prompt: str) -> str | None:
-    """
-    Show an input dialog by spawning system Python (has tkinter).
-    Falls back to PowerShell VisualBasic InputBox.
-    """
-    import shutil, tempfile, uuid
-
-    tk_script = (
-        "import sys, tkinter as tk\n"
-        "from tkinter import simpledialog\n"
-        "root = tk.Tk()\n"
-        "root.withdraw()\n"
-        "root.wm_attributes('-topmost', 1)\n"
-        f"r = simpledialog.askstring({title!r}, {prompt!r}, parent=root)\n"
-        "sys.stdout.buffer.write((r or '').encode('utf-8'))\n"
-    )
-
-    for py in ["python", "python3", "py"]:
-        exe = shutil.which(py)
-        if not exe:
-            continue
-        try:
-            res = subprocess.run(
-                [exe, "-c", tk_script],
-                capture_output=True, timeout=120,
-            )
-            if res.returncode == 0:
-                val = res.stdout.decode("utf-8", errors="replace").strip()
-                return val if val else None
-        except Exception:
-            continue
-
-    # PowerShell fallback
-    try:
-        tmp = Path(tempfile.gettempdir()) / f"ss_{uuid.uuid4().hex}.txt"
-        ps_script = (
-            "Add-Type -AssemblyName Microsoft.VisualBasic; "
-            f'$r = [Microsoft.VisualBasic.Interaction]::InputBox("{prompt}", "{title}", ""); '
-            f'[System.IO.File]::WriteAllText("{tmp}", $r, [System.Text.Encoding]::UTF8)'
-        )
-        subprocess.run(
-            ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps_script],
-            capture_output=True, timeout=120,
-        )
-        if tmp.exists():
-            val = tmp.read_text(encoding="utf-8").strip()
-            tmp.unlink(missing_ok=True)
-            return val if val else None
-    except Exception:
-        pass
-
-    return None
 
 
 def _folder_dialog(title: str, initial: str = "") -> str | None:
@@ -152,7 +97,6 @@ def _load_cfg() -> dict:
     return {
         "watch_folder": str(_find_default_folder()),
         "output_folder": "",
-        "no_ocr": False,
         "confidence_threshold": 0.10,
     }
 
@@ -182,16 +126,15 @@ class TrayApp:
         from .classifier import Classifier
         from .deduplicator import compute_phash, is_duplicate
         from .mover import move_image
-        from .ocr import OCRIndex
         import yaml
 
         cfg_path = Path(__file__).parent.parent / "config.yaml"
         with open(cfg_path, encoding="utf-8") as fh:
             file_cfg = yaml.safe_load(fh)
 
-        categories          = file_cfg.get("categories", {})
-        model_name          = file_cfg.get("clip_model", "ViT-B-32")
-        pretrained          = file_cfg.get("clip_pretrained", "openai")
+        categories           = file_cfg.get("categories", {})
+        model_name           = file_cfg.get("clip_model", "ViT-B-32")
+        pretrained           = file_cfg.get("clip_pretrained", "openai")
         confidence_threshold = self._cfg.get(
             "confidence_threshold", file_cfg.get("confidence_threshold", 0.10)
         )
@@ -202,7 +145,6 @@ class TrayApp:
             if self._cfg.get("output_folder")
             else watch_folder
         )
-        db_path = dest_root / ".screenshot_sorter.db"
 
         classifier = Classifier(
             categories=categories,
@@ -210,7 +152,6 @@ class TrayApp:
             pretrained=pretrained,
             confidence_threshold=confidence_threshold,
         )
-        ocr_index = None if self._cfg.get("no_ocr") else OCRIndex(db_path)
         known_hashes: dict[str, Path] = {}
 
         def _process(image_path: Path) -> None:
@@ -224,15 +165,12 @@ class TrayApp:
                 result = classifier.classify(image_path)
                 if result is None:
                     return
-                dest = move_image(
+                move_image(
                     src=image_path,
                     dest_dir=dest_root,
                     category=result.category,
                     confidence=result.confidence,
                 )
-                if ocr_index is not None:
-                    text = ocr_index.extract_text(dest)
-                    ocr_index.upsert(dest, result.category, text, phash or "")
                 self._count += 1
                 self._update_tooltip()
             except Exception as exc:
@@ -265,8 +203,6 @@ class TrayApp:
         finally:
             observer.stop()
             observer.join()
-            if ocr_index:
-                ocr_index.close()
             self._status = "stopped"
             self._update_tooltip()
 
@@ -319,45 +255,6 @@ class TrayApp:
         if was_running:
             self.start_watcher()
 
-    def _action_search(self, icon, item) -> None:
-        query = _input_dialog("Search", "Enter text to search in screenshots:")
-        if not query:
-            return
-
-        dest_root = (
-            Path(self._cfg["output_folder"])
-            if self._cfg.get("output_folder")
-            else Path(self._cfg["watch_folder"])
-        )
-        db_path = dest_root / ".screenshot_sorter.db"
-
-        if not db_path.exists():
-            _msgbox(
-                "Screenshot Sorter",
-                "No index found.\nRun the watcher first — screenshots will be indexed automatically.",
-                MB_OK | MB_ICONINFO,
-            )
-            return
-
-        from .ocr import OCRIndex
-        index = OCRIndex(db_path)
-        results = index.search(query)
-        index.close()
-
-        if not results:
-            _msgbox("Screenshot Sorter", f"No results for: {query}", MB_OK | MB_ICONINFO)
-            return
-
-        # Build result text and show — user can open folder from there
-        lines = [f"Found {len(results)} result(s) for '{query}':\n"]
-        for r in results:
-            lines.append(f"[{r['category']:10s}]  {Path(r['path']).name}")
-            snippet = (r.get("ocr_text") or "")[:80].replace("\n", " ")
-            if snippet:
-                lines.append(f"             {snippet}")
-        lines.append("\nOpen the sorted folder to view files.")
-        _msgbox("Screenshot Sorter - Search Results", "\n".join(lines), MB_OK | MB_ICONINFO)
-
     def _action_open_folder(self, icon, item) -> None:
         dest = (
             Path(self._cfg["output_folder"])
@@ -402,12 +299,11 @@ class TrayApp:
                 default=True,
             ),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Search by text...", self._action_search),
-            pystray.MenuItem("Open folder",       self._action_open_folder),
-            pystray.MenuItem("Change folder...",  self._action_change_folder),
+            pystray.MenuItem("Open folder",      self._action_open_folder),
+            pystray.MenuItem("Change folder...", self._action_change_folder),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Status",  self._action_status),
-            pystray.MenuItem("Quit",    self._action_quit),
+            pystray.MenuItem("Status", self._action_status),
+            pystray.MenuItem("Quit",   self._action_quit),
         )
 
         self._icon = pystray.Icon(
