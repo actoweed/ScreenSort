@@ -1,0 +1,60 @@
+# Screenshot Sorter — category configuration
+# Each category has a list of CLIP text prompts. The image is matched
+# against ALL prompts; the category with the highest score wins.
+# Edit descriptions freely — no model retraining needed.
+
+categories:
+  code:
+    description: "Source code, terminal output, or developer tools"
+    prompts:
+      - "a screenshot of source code in a code editor"
+      - "a screenshot of a terminal or command line interface"
+      - "a screenshot of a programming IDE like VS Code or PyCharm"
+      - "a screenshot showing code, syntax highlighting, or a shell prompt"
+
+  documents:
+    description: "Documents, PDFs, spreadsheets, or text-heavy content"
+    prompts:
+      - "a screenshot of a text document or word processor"
+      - "a screenshot of a PDF or spreadsheet"
+      - "a screenshot of an email or business document"
+      - "a screenshot showing a long article or written content"
+
+  people:
+    description: "Photos or screenshots featuring people, faces, or portraits"
+    prompts:
+      - "a photo of a person or group of people"
+      - "a screenshot showing a human face or portrait"
+      - "a video call screenshot with faces visible"
+      - "a selfie or photograph of people"
+
+  memes:
+    description: "Memes, funny images, or social media posts"
+    prompts:
+      - "an internet meme with text overlay"
+      - "a funny image or joke screenshot"
+      - "a social media post screenshot from Twitter or Reddit"
+      - "a screenshot of a humorous image macro"
+
+  nature:
+    description: "Nature photography, landscapes, animals, or outdoor scenery"
+    prompts:
+      - "a photograph of nature, trees, or landscape"
+      - "a photo of an animal or wildlife"
+      - "a scenic outdoor photograph"
+      - "a photo of sky, water, mountains, or plants"
+
+  other:
+    description: "Fallback category for anything that doesn't match above"
+    prompts:
+      - "a miscellaneous screenshot"
+      - "an unclassified image"
+
+# Minimum confidence score (0.0–1.0) to assign a category.
+# Images below this threshold go to 'other'.
+confidence_threshold: 0.10
+
+# CLIP model to use. ViT-B-32 is fast and CPU-friendly.
+# Options: ViT-B-32, ViT-B-16, ViT-L-14 (larger = more accurate, slower)
+clip_model: "ViT-B-32"
+clip_pretrained: "openai"

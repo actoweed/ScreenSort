@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "screenshot-sorter"
+version = "0.1.0"
+description = "Automatically sort screenshots into categorized folders using CLIP and OCR"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = ["screenshot", "organizer", "clip", "ocr", "machine-learning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "open-clip-torch>=2.24.0",
+    "easyocr>=1.7.0",
+    "watchdog>=4.0.0",
+    "Pillow>=10.0.0",
+    "imagehash>=4.3.1",
+    "click>=8.1.0",
+    "PyYAML>=6.0",
+    "torch>=2.0.0",
+    "tqdm>=4.65.0",
+    "pystray>=0.19.0",
+]
+
+[project.scripts]
+sort = "screenshot_sorter.cli:main"
+screenshot-sorter = "screenshot_sorter.tray_app:main"
+
+[project.urls]
+Homepage = "https://github.com/actoweed/ScreenSort"
+Repository = "https://github.com/actoweed/ScreenSort"
+Issues = "https://github.com/actoweed/ScreenSort/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["screenshot_sorter*"]
+
+[tool.setuptools.package-data]
+screenshot_sorter = ["*.yaml"]
