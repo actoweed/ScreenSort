@@ -49,37 +49,57 @@ def _msgbox(title: str, text: str, style: int = MB_OK | MB_ICONINFO) -> int:
 
 
 def _input_dialog(title: str, prompt: str) -> str | None:
-    """Simple input dialog using VBScript InputBox — no tkinter needed."""
-    import tempfile, uuid
-    tmp_dir = Path(tempfile.gettempdir())
-    uid = uuid.uuid4().hex
-    vbs = tmp_dir / f"ss_{uid}.vbs"
-    out = tmp_dir / f"ss_{uid}.txt"
-    # Use a fixed-path approach with no user-supplied strings in VBS code
+    """
+    Show an input dialog by spawning system Python (has tkinter).
+    Falls back to PowerShell VisualBasic InputBox.
+    """
+    import shutil, tempfile, uuid
+
+    tk_script = (
+        "import sys, tkinter as tk\n"
+        "from tkinter import simpledialog\n"
+        "root = tk.Tk()\n"
+        "root.withdraw()\n"
+        "root.wm_attributes('-topmost', 1)\n"
+        f"r = simpledialog.askstring({title!r}, {prompt!r}, parent=root)\n"
+        "sys.stdout.buffer.write((r or '').encode('utf-8'))\n"
+    )
+
+    for py in ["python", "python3", "py"]:
+        exe = shutil.which(py)
+        if not exe:
+            continue
+        try:
+            res = subprocess.run(
+                [exe, "-c", tk_script],
+                capture_output=True, timeout=120,
+            )
+            if res.returncode == 0:
+                val = res.stdout.decode("utf-8", errors="replace").strip()
+                return val if val else None
+        except Exception:
+            continue
+
+    # PowerShell fallback
     try:
-        script = (
-            'Dim r\r\n'
-            'r = InputBox("Search text:", "Screenshot Sorter - Search")\r\n'
-            'Dim fso, f\r\n'
-            'Set fso = CreateObject("Scripting.FileSystemObject")\r\n'
-            f'Set f = fso.CreateTextFile("{out}", True, True)\r\n'
-            'f.Write r\r\n'
-            'f.Close\r\n'
+        tmp = Path(tempfile.gettempdir()) / f"ss_{uuid.uuid4().hex}.txt"
+        ps_script = (
+            "Add-Type -AssemblyName Microsoft.VisualBasic; "
+            f'$r = [Microsoft.VisualBasic.Interaction]::InputBox("{prompt}", "{title}", ""); '
+            f'[System.IO.File]::WriteAllText("{tmp}", $r, [System.Text.Encoding]::UTF8)'
         )
-        vbs.write_text(script, encoding="utf-8")
-        subprocess.run(["wscript.exe", str(vbs)], capture_output=True)
-        if out.exists():
-            text_out = out.read_text(encoding="utf-8", errors="replace").strip()
-            return text_out if text_out else None
-        return None
+        subprocess.run(
+            ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps_script],
+            capture_output=True, timeout=120,
+        )
+        if tmp.exists():
+            val = tmp.read_text(encoding="utf-8").strip()
+            tmp.unlink(missing_ok=True)
+            return val if val else None
     except Exception:
-        return None
-    finally:
-        for f in (vbs, out):
-            try:
-                f.unlink(missing_ok=True)
-            except Exception:
-                pass
+        pass
+
+    return None
 
 
 def _folder_dialog(title: str, initial: str = "") -> str | None:
