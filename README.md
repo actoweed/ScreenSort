@@ -2,7 +2,9 @@
 
 > [🇷🇺 Читать на русском](README.ru.md)
 
-Automatically sort your screenshots into categorised folders using [CLIP](https://github.com/mlfoundations/open_clip) zero-shot image classification, with OCR-powered full-text search. Runs as a **system tray app** on Windows — drop a screenshot into your folder and it's sorted instantly.
+![Screenshot Sorter](assets/hero-dark.png)
+
+Automatically sort your screenshots into categorised folders using [CLIP](https://github.com/mlfoundations/open_clip) zero-shot image classification. Runs as a **system tray app** on Windows — drop a screenshot into your folder and it's sorted instantly.
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-blue) ![Python](https://img.shields.io/badge/Python-3.11-blue) ![License](https://img.shields.io/badge/License-MIT-green)
 

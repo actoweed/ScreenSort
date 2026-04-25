@@ -2,6 +2,8 @@
 
 > [🇬🇧 Read in English](README.md)
 
+![Screenshot Sorter](assets/hero-dark.png)
+
 Автоматически сортирует скриншоты по папкам с помощью [CLIP](https://github.com/mlfoundations/open_clip) — нейросети для классификации изображений по тексту. Работает как **приложение в системном трее** — бросил скриншот в папку, он тут же отсортирован.
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-blue) ![Python](https://img.shields.io/badge/Python-3.11-blue) ![License](https://img.shields.io/badge/License-MIT-green)
