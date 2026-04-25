@@ -23,7 +23,7 @@ RequestExecutionLevel user
 !define MUI_UNICON "assets\icon.ico"
 
 !define MUI_WELCOMEPAGE_TITLE "Screenshot Sorter Setup"
-!define MUI_WELCOMEPAGE_TEXT  "This app automatically sorts your screenshots into folders using AI.$\r$\n$\r$\nOn first launch it will download AI models (~600 MB).$\r$\n$\r$\nClick Next to continue."
+!define MUI_WELCOMEPAGE_TEXT  "This app automatically sorts your screenshots into folders using AI.$\r$\n$\r$\nOn first launch it will download AI models (~350 MB).$\r$\n$\r$\nClick Next to continue."
 
 !define MUI_FINISHPAGE_RUN         "$INSTDIR\runtime\pythonw.exe"
 !define MUI_FINISHPAGE_RUN_PARAMETERS "-m screenshot_sorter.first_run"

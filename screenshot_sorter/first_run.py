@@ -186,7 +186,7 @@ def _show_native_progress(done: threading.Event) -> None:
     # Static label
     user32.CreateWindowExW(
         0, "STATIC",
-        "Downloading AI models (~600 MB), please wait...",
+        "Downloading AI models (~350 MB), please wait...",
         WS_CHILD | WS_VISIBLE | SS_CENTER,
         20, 30, 380, 40,
         hwnd, 0, hinstance, None,
