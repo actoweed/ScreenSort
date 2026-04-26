@@ -25,7 +25,7 @@ Automatically sort your screenshots into categorised folders using [CLIP](https:
 Download **`Install_ScreenshotSorter.exe`** from the [Releases](https://github.com/actoweed/ScreenSort/releases) page and run it.
 
 - No Python required — everything is bundled
-- On first launch, AI models are downloaded automatically (~600 MB)
+- On first launch, AI models are downloaded automatically (~400 MB)
 - The app starts watching your Screenshots folder and adds itself to Windows startup
 
 ---
